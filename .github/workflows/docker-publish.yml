@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest
 
 
 jobs:
@@ -17,9 +17,15 @@ jobs:
       contents: read
       packages: write
     steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build
-        run: docker build . -t $IMAGE_NAME:latest
+        run: docker build . -t $IMAGE_NAME
       - name: Publish
-        run: docker push $REGISTRY/$IMAGE_NAME:latest
+        run: docker push $IMAGE_NAME

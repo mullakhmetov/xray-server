@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# Ensure the correct number of arguments are passed
+if [[ "$#" -ne 2 ]]; then
+  echo "Usage: $0 <template_file> <output_file>"
+  exit 1
+fi
+
+template_file="$1"
+output_file="$2"
+
+# Ensure the template file exists
+if [[ ! -f "$template_file" ]]; then
+  echo "Error: Template file '$template_file' does not exist."
+  exit 1
+fi
+
+# Ensure all required environment variables are set. If not, use default values.
+DEFAULT_DEBUG=true
+DEFAULT_PORT=443
+DEFAULT_UUID=$(xray uuid)
+DEFAULT_DEST=www.microsoft.com:443
+DEFAULT_SERVER_NAME=www.microsoft.com
+KEYPAIR=$(xray x25519)
+DEFAULT_PRIVATE_KEY=$(echo $KEYPAIR | awk -F 'Private key: | Public key: ' '{print $2}')
+DEFAULT_PUBLIC_KEY=$(echo $KEYPAIR | awk -F 'Public key: ' '{print $2}' | tr -d '\n')
+DEFAULT_SHORT_ID=$(xray uuid | cut -c 1-8)
+
+DEBUG="${DEBUG:-$DEFAULT_DEBUG}"
+PORT="${PORT:-$DEFAULT_PORT}"
+UUID="${UUID:-$DEFAULT_UUID}"
+DEST="${DEST:-$DEFAULT_DEST}"
+SERVER_NAME="${SERVER_NAME:-$DEFAULT_SERVER_NAME}"
+PRIVATE_KEY="${PRIVATE_KEY:-$DEFAULT_PRIVATE_KEY}"
+SHORT_ID="${SHORT_ID:-$DEFAULT_SHORT_ID}"
+
+# print all configuration values
+echo "PORT: $PORT"
+echo "UUID: $UUID"
+echo "DEST: $DEST"
+echo "SERVER_NAME: $SERVER_NAME"
+if [[ "$PRIVATE_KEY" == "$DEFAULT_PRIVATE_KEY" ]]; then
+  # if the private key was not set as an environment variable it was generated. Print the public key then.
+  echo "PUBLIC KEY: $DEFAULT_PUBLIC_KEY"
+fi
+echo "SHORT_ID: $SHORT_ID"
+
+export DEBUG PORT UUID DEST SERVER_NAME PRIVATE_KEY SHORT_ID
+cat "$template_file" | envsubst '$DEBUG $PORT $UUID $DEST $SERVER_NAME $PRIVATE_KEY $SHORT_ID' > "$output_file"
+echo "Substitution complete. Output written to $output_file."

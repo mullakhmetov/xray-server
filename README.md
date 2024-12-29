@@ -1,6 +1,16 @@
 Docker image for running official [xray](https://github.com/XTLS/Xray-core) server with VLESS protocol.
 
-## Build
+# Zero Configuration Run
+1. Run docker container
+```bash
+docker run -d --restart=always --name xray-server -p 443:443 ghcr.io/mullakhmetov/mullakhmetov/xray-server:latest
+```
+2. Get connection details from logs
+```bash
+docker logs xray-server
+```
+
+## Manual Build With Provided Xray Release
 ```bash
 docker build -t xray-server --build-arg RELEASE=v1.10.3 .
 ```
